@@ -3,6 +3,7 @@ package com.meteorology.meteorology.Class;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.activeandroid.ActiveAndroid;
 import com.meteorology.meteorology.Model.City;
 import com.meteorology.meteorology.Model.DayInfo;
 
@@ -20,6 +21,7 @@ import java.util.List;
 public class UpdateDatabase extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... arg) {
+        ActiveAndroid.beginTransaction();
         try {
             String url = "http://www.cwb.gov.tw/V7/forecast/week/week.htm";
             Document doc = Jsoup.connect(url).get();
@@ -54,8 +56,13 @@ public class UpdateDatabase extends AsyncTask<Void, Void, Void> {
                     }
                 }
             }
+            ActiveAndroid.setTransactionSuccessful();
         } catch (Exception e) {
             e.printStackTrace();
+            ActiveAndroid.endTransaction();
+        }
+        finally {
+            ActiveAndroid.endTransaction();
         }
 
         return null;

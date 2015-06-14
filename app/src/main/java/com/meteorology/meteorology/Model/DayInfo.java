@@ -39,6 +39,13 @@ public class DayInfo extends Model {
                 .execute();
     }
 
+    public static DayInfo getByCityAndDate(int c_id, String date, String am_or_pm) {
+        return new Select()
+                .from(DayInfo.class)
+                .where("c_id = ? and date = ? and am_or_pm = ?", c_id, date, am_or_pm)
+                .executeSingle();
+    }
+
     public static List<DayInfo> getAll() {
         return new Select()
                 .from(DayInfo.class)

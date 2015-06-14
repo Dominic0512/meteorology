@@ -1,5 +1,7 @@
 package com.meteorology.meteorology.Class;
 
+import com.activeandroid.ActiveAndroid;
+
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -20,6 +22,7 @@ import java.util.Calendar;
 public class Seeder extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... arg) {
+        ActiveAndroid.beginTransaction();
         try {
             City.deleteAll();
             DayInfo.deleteAll();
@@ -60,9 +63,13 @@ public class Seeder extends AsyncTask<Void, Void, Void> {
                 }
 
             }
-
+            ActiveAndroid.setTransactionSuccessful();
         } catch (Exception e) {
             e.printStackTrace();
+            ActiveAndroid.endTransaction();
+        }
+        finally {
+            ActiveAndroid.endTransaction();
         }
 
         return null;
