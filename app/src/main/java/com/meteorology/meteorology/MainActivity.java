@@ -10,6 +10,7 @@ import com.meteorology.meteorology.Class.UpdateDatabase;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
@@ -31,15 +32,27 @@ import java.util.TimerTask;
 
 
 public class MainActivity extends Activity {
+    int SECOND_UNIT = 1000;
+
+    Timer timer;
+    RelativeLayout ad_container, main;
+    Button ad_close;
+    int ad_times = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ActiveAndroid.initialize(this.getApplication());
+        main = (RelativeLayout) findViewById(R.id.main);
+        ad_container = new RelativeLayout(this);
+        ad_close = new Button(this);
         new UpdateDatabase().execute();
 //        new Seeder().execute();
         initMainView();
+        timer = new Timer();
+        timer.schedule(new AdvertsingTask(), 5 * SECOND_UNIT);
     }
 
     @Override
@@ -86,13 +99,39 @@ public class MainActivity extends Activity {
             left_side_bar.addView(city_row);
         }
     }
-    public void showAdvertsing () {
-        LinearLayout ad_container = new LinearLayout(this);
-        RelativeLayout main = (RelativeLayout) findViewById(R.id.main);
-        ad_container.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-        ad_container.setBackgroundColor(Color.BLUE);
-        main.addView(ad_container);
+
+    private class AdvertsingTask extends TimerTask {
+        @Override
+        public void run () {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    ad_close.setText("Close");
+                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                    lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                    lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                    ad_close.setLayoutParams(lp);
+                    ad_close.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+//                            if (timer != null) {
+//                                timer.cancel();
+//                            }
+                            main.removeView(ad_container);
+                            main.removeView(ad_close);
+                        }
+                    });
+
+                    ad_container.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+                    ad_container.setBackgroundColor(Color.BLUE);
+                    ad_container.addView(ad_close);
+                    main.addView(ad_container);
+                }
+            });
+        }
     }
+
     private class CityOnClickListener implements View.OnClickListener {
         City city;
         public CityOnClickListener(City city) {
