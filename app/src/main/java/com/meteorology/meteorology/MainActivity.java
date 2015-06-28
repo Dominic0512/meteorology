@@ -7,6 +7,7 @@ import com.meteorology.meteorology.Model.DayInfo;
 
 import com.meteorology.meteorology.Class.Seeder;
 import com.meteorology.meteorology.Class.UpdateDatabase;
+import com.meteorology.meteorology.Class.Internet;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -48,11 +49,25 @@ public class MainActivity extends Activity {
         main = (RelativeLayout) findViewById(R.id.main);
         ad_container = new RelativeLayout(this);
         ad_close = new Button(this);
-        new UpdateDatabase().execute();
-//        new Seeder().execute();
+        if(Internet.haveNetworkConnection(this)) {
+            Log.d("Connected", "SUCCESSFUL!");
+            try{
+                new UpdateDatabase().execute();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                new Seeder().execute();
+            }
+        }
+        else {
+            Log.d("Connected", "FAIL!");
+        }
+
+
         initMainView();
         timer = new Timer();
-        timer.schedule(new AdvertsingTask(), 5 * SECOND_UNIT);
+
+        timer.schedule(new AdvertsingTask(), 5 * SECOND_UNIT, 10 * SECOND_UNIT);
     }
 
     @Override
@@ -103,32 +118,39 @@ public class MainActivity extends Activity {
     private class AdvertsingTask extends TimerTask {
         @Override
         public void run () {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
+            if(ad_times < 2) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ad_times++;
+                        ad_container.removeAllViews();
+                        main.removeView(ad_container);
+                        ad_close.setText("Close");
+                        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                        lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                        lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                        ad_close.setLayoutParams(lp);
+                        ad_close.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                main.removeView(ad_container);
+                                main.removeView(ad_close);
+                            }
+                        });
 
-                    ad_close.setText("Close");
-                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                    lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-                    lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                    ad_close.setLayoutParams(lp);
-                    ad_close.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-//                            if (timer != null) {
-//                                timer.cancel();
-//                            }
-                            main.removeView(ad_container);
-                            main.removeView(ad_close);
-                        }
-                    });
-
-                    ad_container.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                    ad_container.setBackgroundColor(Color.BLUE);
-                    ad_container.addView(ad_close);
-                    main.addView(ad_container);
+                        ad_container.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+                        ad_container.setBackgroundColor(Color.BLUE);
+                        ad_container.addView(ad_close);
+                        main.addView(ad_container);
+                    }
+                });
+            }
+            else {
+                if (timer != null) {
+                    timer.cancel();
                 }
-            });
+            }
+
         }
     }
 
