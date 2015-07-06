@@ -46,7 +46,7 @@ public class UpdateDatabase extends AsyncTask<Void, Void, Void> {
                     Log.d("Day size", Integer.toString(dayInfos.size()));
                     for(int i = 1; i < 8; i++) {
                         Log.d("Day id", Integer.toString(dayInfos.get(i-1).d_id));
-                        dayInfos.get(i-1).date = "" + calendar.get(calendar.MONTH) + "/" + calendar.get(calendar.DATE);
+                        dayInfos.get(i-1).date = calendar.get(calendar.MONTH) + 1 + "/" + calendar.get(calendar.DATE);
                         dayInfos.get(i-1).week = Integer.toString(calendar.DATE);
                         dayInfos.get(i-1).am_or_pm = am_or_pm;
                         dayInfos.get(i-1).weather = tds.get(i).select("img").attr("title").toString();

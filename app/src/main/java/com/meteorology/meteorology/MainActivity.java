@@ -9,9 +9,11 @@ import com.meteorology.meteorology.Class.Seeder;
 import com.meteorology.meteorology.Class.UpdateDatabase;
 import com.meteorology.meteorology.Class.Internet;
 
+import com.meteorology.meteorology.CityDetail;
+
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
@@ -19,7 +21,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -62,7 +63,6 @@ public class MainActivity extends Activity {
         else {
             Log.d("Connected", "FAIL!");
         }
-
 
         initMainView();
         timer = new Timer();
@@ -113,6 +113,16 @@ public class MainActivity extends Activity {
             city_row.addView(city_btn);
             left_side_bar.addView(city_row);
         }
+
+        Button city_detail = (Button) findViewById(R.id.city_detail);
+        city_detail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, CityDetail.class);
+                startActivity(intent);
+                finish();
+            }
+        });
     }
 
     private class AdvertsingTask extends TimerTask {
@@ -154,6 +164,8 @@ public class MainActivity extends Activity {
         }
     }
 
+
+
     private class CityOnClickListener implements View.OnClickListener {
         City city;
         public CityOnClickListener(City city) {
@@ -163,7 +175,7 @@ public class MainActivity extends Activity {
         @Override
         public void onClick(View v){
             Calendar calendar = Calendar.getInstance();
-            String today = "" + calendar.get(calendar.MONTH) + "/" + calendar.get(calendar.DATE);
+            String today = calendar.get(calendar.MONTH) + 1 + "/" + calendar.get(calendar.DATE);
             int hour = calendar.get(calendar.HOUR_OF_DAY);
 
             TextView date = (TextView) findViewById(R.id.date);
