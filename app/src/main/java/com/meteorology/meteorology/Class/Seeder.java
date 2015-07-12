@@ -20,6 +20,7 @@ import java.util.Calendar;
  * Delete origin data in the data base then insert new data into database
  */
 public class Seeder extends AsyncTask<Void, Void, Void> {
+    HelpService hs = new HelpService();
     @Override
     protected Void doInBackground(Void... arg) {
         ActiveAndroid.beginTransaction();
@@ -52,7 +53,7 @@ public class Seeder extends AsyncTask<Void, Void, Void> {
                         dayInfo.c_id = index;
                         dayInfo.d_id = d_index;
                         dayInfo.date = "" + calendar.get(calendar.MONTH) + "/" + calendar.get(calendar.DATE);
-                        dayInfo.week = Integer.toString(calendar.DATE);
+                        dayInfo.day_of_week = hs.getDayOfWeekString(calendar.get(calendar.DAY_OF_WEEK));
                         dayInfo.am_or_pm = am_or_pm;
                         dayInfo.weather = tds.get(i).select("img").attr("title").toString();
                         dayInfo.temperature = tds.get(i).text().toString();

@@ -7,6 +7,8 @@ import com.activeandroid.ActiveAndroid;
 import com.meteorology.meteorology.Model.City;
 import com.meteorology.meteorology.Model.DayInfo;
 
+import com.meteorology.meteorology.Class.HelpService;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -19,6 +21,7 @@ import java.util.List;
  * Created by lizhe on 2015/6/13.
  */
 public class UpdateDatabase extends AsyncTask<Void, Void, Void> {
+    HelpService hs = new HelpService();
     @Override
     protected Void doInBackground(Void... arg) {
         ActiveAndroid.beginTransaction();
@@ -45,14 +48,15 @@ public class UpdateDatabase extends AsyncTask<Void, Void, Void> {
                     List<DayInfo> dayInfos = DayInfo.getByCity(c_id, am_or_pm);
                     Log.d("Day size", Integer.toString(dayInfos.size()));
                     for(int i = 1; i < 8; i++) {
-                        Log.d("Day id", Integer.toString(dayInfos.get(i-1).d_id));
+                        Log.d("Day id", Integer.toString(dayInfos.get(i - 1).d_id));
                         dayInfos.get(i-1).date = calendar.get(calendar.MONTH) + 1 + "/" + calendar.get(calendar.DATE);
-                        dayInfos.get(i-1).week = Integer.toString(calendar.DATE);
+                        dayInfos.get(i-1).day_of_week = hs.getDayOfWeekString(calendar.get(calendar.DAY_OF_WEEK));
                         dayInfos.get(i-1).am_or_pm = am_or_pm;
                         dayInfos.get(i-1).weather = tds.get(i).select("img").attr("title").toString();
                         dayInfos.get(i-1).temperature = tds.get(i).text().toString();
                         dayInfos.get(i-1).save();
                         calendar.add(calendar.DATE, 1);
+
                     }
                 }
             }
@@ -67,6 +71,7 @@ public class UpdateDatabase extends AsyncTask<Void, Void, Void> {
 
         return null;
     }
+
     @Override
     protected void onPostExecute(Void result) {
         Log.d("Stop", "");

@@ -19,8 +19,8 @@ public class DayInfo extends Model {
     public int d_id;
     @Column(name="date")
     public String date;
-    @Column(name="week")
-    public String week;
+    @Column(name="day_of_week")
+    public String day_of_week;
     @Column(name="am_or_pm")
     public String am_or_pm;
     @Column(name="temperature")

@@ -14,7 +14,7 @@
         android:theme="@style/AppTheme" >
         <meta-data
             android:name="AA_DB_NAME"
-            android:value="m4.db" />
+            android:value="m6.db" />
         <meta-data
             android:name="AA_DB_VERSION"
             android:value="11" />
@@ -30,14 +30,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity
-            android:name=".CityDetail"
-            android:label="@string/title_activity_city_detail"
-            android:parentActivityName=".MainActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.meteorology.meteorology.MainActivity" />
         </activity>
     </application>
 
