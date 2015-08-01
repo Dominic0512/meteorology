@@ -28,6 +28,9 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Calendar;
@@ -41,7 +44,7 @@ public class MainActivity extends Activity {
     HelpService hs = new HelpService();
     List<City> cities = new ArrayList<>();
     int SECOND_UNIT = 1000, ad_times = 0;
-    Timer timer;
+    Timer ad_timer, clock_timer;
     RelativeLayout ad_container, main;
     Button ad_close;
 
@@ -55,27 +58,14 @@ public class MainActivity extends Activity {
         ad_container = new RelativeLayout(this);
         ad_close = new Button(this);
 
-        if(Internet.haveNetworkConnection(this)) {
-            Log.d("Connected", "SUCCESSFUL!");
-            if(DayInfo.getAll().size() == 0 ) {
-                new Seeder().execute();
-            }
-
-            try{
-                new UpdateDatabase().execute();
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        else {
-            Log.d("Connected", "FAIL!");
-        }
+        remoteDataSync();
         initSideBar();
         initMainContainer();
-        timer = new Timer();
 
-        timer.schedule(new AdvertsingTask(), 5 * SECOND_UNIT, 10 * SECOND_UNIT);
+        ad_timer = new Timer();
+        ad_timer.schedule(new AdvertsingTask(), 5 * SECOND_UNIT, 10 * SECOND_UNIT);
+        clock_timer = new Timer();
+        clock_timer.schedule(new clockTask(), 1 * SECOND_UNIT, 60 * SECOND_UNIT);
     }
 
     @Override
@@ -100,15 +90,34 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void remoteDataSync() {
+        if(Internet.haveNetworkConnection(this)) {
+            Log.d("Connected", "SUCCESSFUL!");
+            if(DayInfo.getAll().size() == 0 ) {
+                new Seeder().execute();
+            }
+
+            try{
+                new UpdateDatabase().execute();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            Log.d("Connected", "FAIL!");
+        }
+    }
+
     private void initMainContainer() {
         RelativeLayout main_container = (RelativeLayout) findViewById(R.id.main);
+
         if(Config.am_or_pm == "白天") {
             main_container.setBackgroundResource(R.drawable.morning);
         }
         else {
             main_container.setBackgroundResource(R.drawable.night);
         }
-
     }
 
     private void initSideBar() {
@@ -132,6 +141,24 @@ public class MainActivity extends Activity {
 
             city_row.addView(city_btn);
             left_side_bar.addView(city_row);
+        }
+    }
+
+    private class clockTask extends TimerTask {
+        @Override
+        public void run () {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    clockTimerTracker();
+                }
+            });
+        }
+        private void clockTimerTracker() {
+            TextView clock_timer_view = (TextView) findViewById(R.id.timer);
+            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
+            Calendar calendar = Calendar.getInstance();
+            clock_timer_view.setText(dateFormat.format(calendar.getTime()));
         }
     }
 
@@ -175,11 +202,10 @@ public class MainActivity extends Activity {
                 });
             }
             else {
-                if (timer != null) {
-                    timer.cancel();
+                if (ad_timer != null) {
+                    ad_timer.cancel();
                 }
             }
-
         }
     }
 
@@ -196,27 +222,37 @@ public class MainActivity extends Activity {
 
         @Override
         public void onClick(View v){
+            int TextColor = config.getTextColor();
+            String AmOrPm = config.getAmOrPm();
+
             LinearLayout report_frame = (LinearLayout) findViewById(R.id.report_frame);
-            TextView date = (TextView) findViewById(R.id.date);
             TextView city_name = (TextView) findViewById(R.id.city_name);
+            ImageView today_weather_img = (ImageView) findViewById(R.id.today_weather_img);
             TextView temperature = (TextView) findViewById(R.id.temperature);
-            TextView weather_detail = (TextView) findViewById(R.id.weather_detail);
+            TextView today_weather = (TextView) findViewById(R.id.today_weather);
+
             LinearLayout weekly_report = (LinearLayout) findViewById(R.id.weekly_report);
 
-            DayInfo today = DayInfo.getByCityAndDate(this.city.c_id, this.today, Config.am_or_pm);
+            DayInfo today = DayInfo.getByCityAndDate(this.city.c_id, this.today, AmOrPm);
             List<DayInfo> week_morning = new ArrayList<>();
             List<DayInfo> week_night = new ArrayList<>();
             week_morning = DayInfo.getByCity(this.city.c_id, "白天");
             week_night = DayInfo.getByCity(this.city.c_id, "晚上");
 
-            date.setText(today.date);
-            date.setTextColor(Config.textColor);
+
+
             city_name.setText(this.city.name);
-            city_name.setTextColor(Config.textColor);
-            temperature.setText(today.temperature);
-            temperature.setTextColor(Config.textColor);
-            weather_detail.setText(today.weather);
-            weather_detail.setTextColor(Config.textColor);
+            city_name.setTextColor(TextColor);
+            //-- Set image by resource file name
+            String tw_img_name = hs.getImageName(today.weather, AmOrPm);
+            int tw_resId = getResources().getIdentifier(tw_img_name, "drawable", getPackageName());
+            today_weather_img.setImageResource(tw_resId);
+
+            temperature.setText(today.temperature + "°c");
+            temperature.setTextColor(TextColor);
+
+            today_weather.setText(today.weather);
+            today_weather.setTextColor(TextColor);
 
             int rps_width = report_frame.getWidth() / 7;
             int rps_height = report_frame.getHeight() - 20;
@@ -237,14 +273,14 @@ public class MainActivity extends Activity {
                 rp_date.setBackgroundColor(Color.argb(200, 128, 128, 128));
                 rp_date.setText(week_morning.get(i).date);
                 rp_date.setTextSize(22);
-                rp_date.setTextColor(Config.textColor);
+                rp_date.setTextColor(TextColor);
                 rp_date.setGravity(Gravity.CENTER_HORIZONTAL);
 
                 TextView rp_day = new TextView(context);
                 LinearLayout.LayoutParams rp_day_lp = new LinearLayout.LayoutParams(rps_width, hs.getScalar(rps_height, 1.0, 12.0));
                 rp_day.setLayoutParams(rp_day_lp);
                 rp_day.setText(week_morning.get(i).day_of_week);
-                rp_day.setTextColor(Config.textColor);
+                rp_day.setTextColor(TextColor);
                 rp_day.setTextSize(24);
                 rp_day.setGravity(Gravity.CENTER_HORIZONTAL);
 
@@ -262,7 +298,7 @@ public class MainActivity extends Activity {
                 LinearLayout.LayoutParams rp_m_t_lp = new LinearLayout.LayoutParams(rps_width, hs.getScalar(rps_height, 1.0, 12.0));
                 rp_m_temperature.setLayoutParams(rp_m_t_lp);
                 rp_m_temperature.setText(week_morning.get(i).temperature);
-                rp_m_temperature.setTextColor(Config.textColor);
+                rp_m_temperature.setTextColor(TextColor);
                 rp_m_temperature.setTextSize(24);
                 rp_m_temperature.setGravity(Gravity.CENTER_HORIZONTAL);
 
@@ -280,7 +316,7 @@ public class MainActivity extends Activity {
                 LinearLayout.LayoutParams rp_n_t_lp = new LinearLayout.LayoutParams(rps_width, hs.getScalar(rps_height, 1.0, 12.0));
                 rp_n_temperature.setLayoutParams(rp_n_t_lp);
                 rp_n_temperature.setText(week_night.get(i).temperature);
-                rp_n_temperature.setTextColor(Config.textColor);
+                rp_n_temperature.setTextColor(TextColor);
                 rp_n_temperature.setTextSize(24);
                 rp_n_temperature.setGravity(Gravity.CENTER_HORIZONTAL);
 
@@ -293,7 +329,5 @@ public class MainActivity extends Activity {
                 weekly_report.addView(report);
             }
         }
-
-
     }
 }

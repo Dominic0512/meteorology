@@ -38,24 +38,25 @@
         android:layout_toEndOf="@+id/linearLayout">
 
         <TextView
-            android:layout_width="100dp"
-            android:layout_height="50dp"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:id="@+id/date"
-            android:textSize="20pt"
-            android:layout_alignParentTop="true"
-            android:layout_alignLeft="@+id/city_name"
-            android:layout_alignStart="@+id/city_name" />
-
-        <TextView
             android:layout_width="300dp"
-            android:layout_height="150dp"
+            android:layout_height="75dp"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:id="@+id/city_name"
-            android:textSize="36pt"
-            android:layout_below="@+id/date"
+            android:textSize="26pt"
+            android:gravity="center"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true" />
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="75dp"
+            android:id="@+id/timer"
+            android:textSize="18pt"
+            android:gravity="right"
+            android:paddingRight="10dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
 
         <TextView
             android:layout_width="300dp"
@@ -63,34 +64,43 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textSize="24pt"
             android:id="@+id/temperature"
-            android:layout_above="@+id/weather_detail"
+            android:layout_alignParentTop="true"
             android:layout_toRightOf="@+id/city_name"
-            android:layout_toEndOf="@+id/city_name" />
+            android:layout_toLeftOf="@+id/timer"
+            android:layout_toStartOf="@+id/timer"
+            android:layout_alignBottom="@+id/timer" />
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="300dp"
             android:layout_height="100dp"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textSize="20pt"
-            android:id="@+id/weather_detail"
-            android:layout_alignBottom="@+id/city_name"
+            android:id="@+id/today_weather"
+            android:textSize="24pt"
+            android:layout_above="@+id/report_frame"
+            android:layout_toRightOf="@+id/today_weather_img"
             android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:layout_toRightOf="@+id/city_name"
-            android:layout_toEndOf="@+id/city_name" />
+            android:layout_alignParentEnd="true" />
+
+        <ImageView
+            android:layout_width="300dp"
+            android:layout_height="100dp"
+            android:id="@+id/today_weather_img"
+            android:layout_below="@+id/city_name"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:id="@+id/report_frame"
+            android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:layout_below="@+id/city_name"
-            android:id="@+id/report_frame">
+            android:layout_below="@+id/today_weather_img">
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content">
 
                 <LinearLayout
                     android:orientation="horizontal"
