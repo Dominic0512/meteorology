@@ -2,6 +2,7 @@ package com.meteorology.meteorology;
 
 import com.activeandroid.ActiveAndroid;
 
+import com.meteorology.meteorology.Model.Advertising;
 import com.meteorology.meteorology.Model.City;
 import com.meteorology.meteorology.Model.DayInfo;
 
@@ -34,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Calendar;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -59,11 +61,12 @@ public class MainActivity extends Activity {
         ad_close = new Button(this);
 
         remoteDataSync();
+        advertisingSync();
         initSideBar();
         initMainContainer();
 
         ad_timer = new Timer();
-        ad_timer.schedule(new AdvertsingTask(), 5 * SECOND_UNIT, 10 * SECOND_UNIT);
+        ad_timer.schedule(new AdvertisingTask(this), 5 * SECOND_UNIT, 10 * SECOND_UNIT);
         clock_timer = new Timer();
         clock_timer.schedule(new clockTask(), 1 * SECOND_UNIT, 60 * SECOND_UNIT);
     }
@@ -88,6 +91,23 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void advertisingSync() {
+        if(Advertising.getAll().size() == 0) {
+            for( int i = 1; i <= 8; i++ ) {
+                Advertising ad = new Advertising();
+                ad.ad_id = i;
+                ad.name = "ad" + i;
+                ad.is_showed = false;
+                ad.save();
+            }
+        }
+        else {
+            if(Advertising.isAllShowed()) {
+                Advertising.reset();
+            }
+        }
     }
 
     private void remoteDataSync() {
@@ -162,7 +182,12 @@ public class MainActivity extends Activity {
         }
     }
 
-    private class AdvertsingTask extends TimerTask {
+    private class AdvertisingTask extends TimerTask {
+        Context context;
+        public AdvertisingTask(Context context) {
+            this.context = context;
+        }
+
         @Override
         public void run () {
             if(ad_times < 2) {
@@ -175,6 +200,9 @@ public class MainActivity extends Activity {
                         main.removeView(ad_container);
                         ad_close.setText("關閉廣告");
                         ad_close.setTextSize(30);
+                        ad_close.setBackgroundColor(Color.argb(200, 128, 128, 128));
+                        ad_close.setTextColor(Color.WHITE);
+
                         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                         lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
                         lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
@@ -188,8 +216,13 @@ public class MainActivity extends Activity {
                         });
 
                         ad_container.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                        ad_container.setBackgroundColor(Color.BLUE);
+                        ad_container.setBackgroundColor(Color.BLACK);
 
+                        ImageView ad_img_view = new ImageView(context);
+                        int ad_resId = getResources().getIdentifier(getRandomAd(), "drawable", getPackageName());
+                        ad_img_view.setImageResource(ad_resId);
+
+                        ad_container.addView(ad_img_view);
                         main.addView(ad_container);
                         Handler close_handler = new Handler();
                         close_handler.postDelayed(new Runnable() {
@@ -206,6 +239,18 @@ public class MainActivity extends Activity {
                     ad_timer.cancel();
                 }
             }
+        }
+        private String getRandomAd() {
+            List<Advertising> not_showed_ads  = new ArrayList<>();
+            Random rand = new Random();
+            not_showed_ads = Advertising.getAdsForNotShowed();
+            int rid = rand.nextInt(not_showed_ads.size());
+            //-- Update ad attribute for is_showed
+            Advertising show_ad = not_showed_ads.get(rid);
+            show_ad.is_showed = true;
+            show_ad.save();
+
+            return not_showed_ads.get(rid).name;
         }
     }
 

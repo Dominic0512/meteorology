@@ -36,17 +36,6 @@ public class City extends Model {
         }
     }
 
-//    public static List getCityWithDayInfo()
-//    {
-//       From query = new Select()
-//            .from(City.class)
-//            .leftJoin(DayInfo.class)
-//            .on("City.c_id = DayInfo.c_id");
-//        Cursor cursor = Cache.openDatabase().rawQuery(query.toSql(), query.getArguments());
-//
-//    }
-
-
     public static City getCity(String name ) {
         List<City> row_data = new Select().from(City.class).where("name = ?", name).execute();
         return row_data.get(0);
