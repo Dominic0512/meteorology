@@ -55,4 +55,15 @@ public class HelpService {
     public int getScalar(int total_scalar, double scale, double total_scale) {
         return (int) ((double)total_scalar * (scale/total_scale));
     }
+
+    public String temperture_formater(String temp) {
+        String[] parts = temp.split("~");
+        for(int i = 0; i < parts.length; i++) {
+            parts[i] = parts[i] + "°";
+        }
+
+        temp = parts[0] + " ~" + parts[1];
+
+        return temp;
+    }
 }

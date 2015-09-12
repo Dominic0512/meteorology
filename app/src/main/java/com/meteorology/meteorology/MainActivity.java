@@ -45,10 +45,11 @@ public class MainActivity extends Activity {
     Config config;
     HelpService hs = new HelpService();
     List<City> cities = new ArrayList<>();
-    int SECOND_UNIT = 1000, ad_times = 1;
-    Timer ad_timer, clock_timer;
+    int SECOND_UNIT = 1000, ad_times = 1, rcp_time = 5;
+    Timer ad_timer, clock_timer, reciprocal_timer;
     RelativeLayout ad_container, main;
     Button ad_close;
+    TextView ad_reciprocal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +60,7 @@ public class MainActivity extends Activity {
         main = (RelativeLayout) findViewById(R.id.main);
         ad_container = new RelativeLayout(this);
         ad_close = new Button(this);
+        ad_reciprocal = new TextView(this);
 
         remoteDataSync();
         advertisingSync();
@@ -66,8 +68,7 @@ public class MainActivity extends Activity {
         initSideBar();
         initMainContainer();
 
-        ad_timer = new Timer();
-        ad_timer.schedule(new AdvertisingTask(this), 5 * SECOND_UNIT, 10 * SECOND_UNIT);
+        showAd();
         clock_timer = new Timer();
         clock_timer.schedule(new clockTask(), 1 * SECOND_UNIT, 60 * SECOND_UNIT);
     }
@@ -92,6 +93,12 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+
+    public void showAd() {
+        ad_timer = new Timer();
+        ad_timer.schedule(new AdvertisingTask(this), 5 * SECOND_UNIT);
     }
 
     private void advertisingSync() {
@@ -183,6 +190,32 @@ public class MainActivity extends Activity {
         }
     }
 
+    private class reciprocalTask extends TimerTask {
+        @Override
+        public void run () {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    clockTimerTracker();
+                }
+            });
+        }
+        private void clockTimerTracker() {
+
+            if(rcp_time <= 0) {
+                rcp_time = 5;
+                reciprocal_timer.cancel();
+                ad_container.removeView(ad_reciprocal);
+                ad_container.addView(ad_close);
+            }
+            else {
+                rcp_time--;
+            }
+            ad_reciprocal.setText(rcp_time + "秒");
+        }
+    }
+
+
     private class AdvertisingTask extends TimerTask {
         Context context;
         public AdvertisingTask(Context context) {
@@ -197,8 +230,17 @@ public class MainActivity extends Activity {
                     public void run() {
 
                         ad_container.removeAllViews();
-
                         main.removeView(ad_container);
+
+                        RelativeLayout.LayoutParams reciprocal_lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                        reciprocal_lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                        reciprocal_lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                        ad_reciprocal.setLayoutParams(reciprocal_lp);
+                        ad_reciprocal.setText(rcp_time + "秒");
+                        ad_reciprocal.setTextSize(30);
+                        ad_reciprocal.setTextColor(Color.WHITE);
+
+
                         ad_close.setText("關閉廣告");
                         ad_close.setTextSize(30);
                         ad_close.setBackgroundColor(Color.argb(200, 128, 128, 128));
@@ -207,12 +249,15 @@ public class MainActivity extends Activity {
                         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                         lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
                         lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+
+
                         ad_close.setLayoutParams(lp);
                         ad_close.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 main.removeView(ad_container);
                                 main.removeView(ad_close);
+                                showAd();
                             }
                         });
 
@@ -220,20 +265,18 @@ public class MainActivity extends Activity {
                         ad_container.setBackgroundColor(Color.BLACK);
 
                         ImageView ad_img_view = new ImageView(context);
-                        Log.d("ad", config.ad_id + ad_times);
+                        RelativeLayout.LayoutParams imglp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+                        ad_img_view.setLayoutParams(imglp);
+                        ad_img_view.setScaleType(ImageView.ScaleType.MATRIX);
                         int ad_resId = getResources().getIdentifier(config.ad_id+ad_times, "drawable", getPackageName());
                         ad_img_view.setImageResource(ad_resId);
 
                         ad_container.addView(ad_img_view);
+                        ad_container.addView(ad_reciprocal);
                         main.addView(ad_container);
+                        reciprocal_timer = new Timer();
+                        reciprocal_timer.schedule(new reciprocalTask(), 1 * SECOND_UNIT, 1 * SECOND_UNIT);
                         ad_times++;
-                        Handler close_handler = new Handler();
-                        close_handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                ad_container.addView(ad_close);
-                            }
-                        }, 3000);
                     }
                 });
             }
@@ -285,7 +328,7 @@ public class MainActivity extends Activity {
             int tw_resId = getResources().getIdentifier(tw_img_name, "drawable", getPackageName());
             today_weather_img.setImageResource(tw_resId);
 
-            temperature.setText(today.temperature + "°c");
+            temperature.setText(hs.temperture_formater(today.temperature));
             temperature.setTextColor(TextColor);
 
             today_weather.setText(today.weather);
@@ -309,7 +352,7 @@ public class MainActivity extends Activity {
                 rp_date.setLayoutParams(rp_date_lp);
                 rp_date.setBackgroundColor(Color.argb(200, 245, 245, 245));
                 rp_date.setText(week_morning.get(i).date);
-                rp_date.setTextSize(22);
+                rp_date.setTextSize(28);
                 rp_date.setTextColor(TextColor);
                 rp_date.setGravity(Gravity.CENTER_HORIZONTAL);
 
@@ -334,7 +377,7 @@ public class MainActivity extends Activity {
                 TextView rp_m_temperature = new TextView(context);
                 LinearLayout.LayoutParams rp_m_t_lp = new LinearLayout.LayoutParams(rps_width, hs.getScalar(rps_height, 1.0, 12.0));
                 rp_m_temperature.setLayoutParams(rp_m_t_lp);
-                rp_m_temperature.setText(week_morning.get(i).temperature);
+                rp_m_temperature.setText(hs.temperture_formater(week_morning.get(i).temperature));
                 rp_m_temperature.setTextColor(TextColor);
                 rp_m_temperature.setTextSize(24);
                 rp_m_temperature.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -352,7 +395,7 @@ public class MainActivity extends Activity {
                 TextView rp_n_temperature = new TextView(context);
                 LinearLayout.LayoutParams rp_n_t_lp = new LinearLayout.LayoutParams(rps_width, hs.getScalar(rps_height, 1.0, 12.0));
                 rp_n_temperature.setLayoutParams(rp_n_t_lp);
-                rp_n_temperature.setText(week_night.get(i).temperature);
+                rp_n_temperature.setText(hs.temperture_formater(week_night.get(i).temperature));
                 rp_n_temperature.setTextColor(TextColor);
                 rp_n_temperature.setTextSize(24);
                 rp_n_temperature.setGravity(Gravity.CENTER_HORIZONTAL);
