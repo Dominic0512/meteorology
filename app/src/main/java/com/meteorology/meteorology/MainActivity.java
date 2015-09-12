@@ -42,10 +42,10 @@ import java.util.TimerTask;
 
 
 public class MainActivity extends Activity {
-    Config config = new Config(this);
+    Config config;
     HelpService hs = new HelpService();
     List<City> cities = new ArrayList<>();
-    int SECOND_UNIT = 1000, ad_times = 0;
+    int SECOND_UNIT = 1000, ad_times = 1;
     Timer ad_timer, clock_timer;
     RelativeLayout ad_container, main;
     Button ad_close;
@@ -62,6 +62,7 @@ public class MainActivity extends Activity {
 
         remoteDataSync();
         advertisingSync();
+        config = new Config(this);
         initSideBar();
         initMainContainer();
 
@@ -190,11 +191,11 @@ public class MainActivity extends Activity {
 
         @Override
         public void run () {
-            if(ad_times < 2) {
+            if(ad_times <= 2) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        ad_times++;
+
                         ad_container.removeAllViews();
 
                         main.removeView(ad_container);
@@ -219,11 +220,13 @@ public class MainActivity extends Activity {
                         ad_container.setBackgroundColor(Color.BLACK);
 
                         ImageView ad_img_view = new ImageView(context);
-                        int ad_resId = getResources().getIdentifier(getRandomAd(), "drawable", getPackageName());
+                        Log.d("ad", config.ad_id + ad_times);
+                        int ad_resId = getResources().getIdentifier(config.ad_id+ad_times, "drawable", getPackageName());
                         ad_img_view.setImageResource(ad_resId);
 
                         ad_container.addView(ad_img_view);
                         main.addView(ad_container);
+                        ad_times++;
                         Handler close_handler = new Handler();
                         close_handler.postDelayed(new Runnable() {
                             @Override
@@ -240,18 +243,7 @@ public class MainActivity extends Activity {
                 }
             }
         }
-        private String getRandomAd() {
-            List<Advertising> not_showed_ads  = new ArrayList<>();
-            Random rand = new Random();
-            not_showed_ads = Advertising.getAdsForNotShowed();
-            int rid = rand.nextInt(not_showed_ads.size());
-            //-- Update ad attribute for is_showed
-            Advertising show_ad = not_showed_ads.get(rid);
-            show_ad.is_showed = true;
-            show_ad.save();
 
-            return not_showed_ads.get(rid).name;
-        }
     }
 
     public class CityOnClickListener implements View.OnClickListener {
@@ -310,12 +302,12 @@ public class MainActivity extends Activity {
                 rp_LayoutParams.setMargins(10, 10, 10, 10);
                 report.setLayoutParams(rp_LayoutParams);
                 report.setOrientation(LinearLayout.VERTICAL);
-                report.setBackgroundColor(Color.argb(128, 128, 128, 128));
+                report.setBackgroundColor(Color.argb(128, 245, 245, 245));
 
                 TextView rp_date = new TextView(context);
                 LinearLayout.LayoutParams rp_date_lp = new LinearLayout.LayoutParams(rps_width, hs.getScalar(rps_height, 1.0, 12.0));
                 rp_date.setLayoutParams(rp_date_lp);
-                rp_date.setBackgroundColor(Color.argb(200, 128, 128, 128));
+                rp_date.setBackgroundColor(Color.argb(200, 245, 245, 245));
                 rp_date.setText(week_morning.get(i).date);
                 rp_date.setTextSize(22);
                 rp_date.setTextColor(TextColor);
@@ -332,7 +324,7 @@ public class MainActivity extends Activity {
                 LinearLayout rp_m_img_frame = new LinearLayout(context);
                 LinearLayout.LayoutParams rp_m_img_lp = new LinearLayout.LayoutParams(rps_width, hs.getScalar(rps_height, 4.0, 12.0));
                 rp_m_img_frame.setLayoutParams(rp_m_img_lp);
-                rp_m_img_frame.setGravity(Gravity.CENTER_HORIZONTAL);
+                rp_m_img_frame.setGravity(Gravity.CENTER);
                 ImageView rp_m_img = new ImageView(context);
                 String m_img = hs.getImageName(week_morning.get(i).weather, "白天");
                 int m_resId = getResources().getIdentifier(m_img, "drawable", getPackageName());
@@ -350,7 +342,7 @@ public class MainActivity extends Activity {
                 LinearLayout rp_n_img_frame = new LinearLayout(context);
                 LinearLayout.LayoutParams rp_n_img_lp = new LinearLayout.LayoutParams(rps_width, hs.getScalar(rps_height, 4.0, 12.0));
                 rp_n_img_frame.setLayoutParams(rp_n_img_lp);
-                rp_n_img_frame.setGravity(Gravity.CENTER_HORIZONTAL);
+                rp_n_img_frame.setGravity(Gravity.CENTER);
                 ImageView rp_n_img = new ImageView(context);
                 String n_img = hs.getImageName(week_night.get(i).weather, "晚上");
                 int n_resId = getResources().getIdentifier(n_img, "drawable", getPackageName());
