@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">meteorology</string>
+    <string name="app_name">天氣預報</string>
     <string name="action_settings">action settings</string>
     <string name="title_activity_city_detail">CityDetail</string>
 
