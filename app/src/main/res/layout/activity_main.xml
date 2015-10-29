@@ -74,7 +74,7 @@
             android:layout_width="300dp"
             android:layout_height="100dp"
             android:id="@+id/today_weather"
-            android:textSize="24pt"
+            android:textSize="20pt"
             android:layout_above="@+id/report_frame"
             android:layout_toRightOf="@+id/today_weather_img"
             android:layout_alignParentRight="true"

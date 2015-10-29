@@ -15,6 +15,7 @@ import com.meteorology.meteorology.Class.HelpService;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -50,6 +51,7 @@ public class MainActivity extends Activity {
     RelativeLayout ad_container, main;
     Button ad_close;
     TextView ad_reciprocal;
+    Button taipei;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,11 +69,20 @@ public class MainActivity extends Activity {
         config = new Config(this);
         initSideBar();
         initMainContainer();
-
         showAd();
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                taipei.performClick();
+            }
+        }, 1000);
         clock_timer = new Timer();
         clock_timer.schedule(new clockTask(), 1 * SECOND_UNIT, 60 * SECOND_UNIT);
     }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -94,7 +105,6 @@ public class MainActivity extends Activity {
 
         return super.onOptionsItemSelected(item);
     }
-
 
     public void showAd() {
         ad_timer = new Timer();
@@ -147,148 +157,6 @@ public class MainActivity extends Activity {
             main_container.setBackgroundResource(R.drawable.night);
         }
     }
-
-    private void initSideBar() {
-        LinearLayout left_side_bar = (LinearLayout) findViewById(R.id.left_side_bar);
-
-        cities = City.getAll();
-
-        for( int i = 0; i < cities.size(); i++ ) {
-            City city = cities.get(i);
-            LinearLayout city_row = new LinearLayout(this);
-            city_row.setLayoutParams(new LinearLayout.LayoutParams(config.getScreenWidth()/5, config.getScreenHigh()/8));
-            city_row.setOrientation(LinearLayout.HORIZONTAL);
-
-            Button city_btn = new Button(this);
-            city_btn.setId(city.c_id);
-            city_btn.setText(city.name);
-            city_btn.setTextColor(Config.textColor);
-            city_btn.setTextSize(TypedValue.COMPLEX_UNIT_PX, config.getScreenHigh()/15);
-            city_btn.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-            city_btn.setOnClickListener(new CityOnClickListener(city, this));
-
-            city_row.addView(city_btn);
-            left_side_bar.addView(city_row);
-        }
-    }
-
-    private class clockTask extends TimerTask {
-        @Override
-        public void run () {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    clockTimerTracker();
-                }
-            });
-        }
-        private void clockTimerTracker() {
-            TextView clock_timer_view = (TextView) findViewById(R.id.timer);
-            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
-            Calendar calendar = Calendar.getInstance();
-            clock_timer_view.setText(dateFormat.format(calendar.getTime()));
-        }
-    }
-
-    private class reciprocalTask extends TimerTask {
-        @Override
-        public void run () {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    clockTimerTracker();
-                }
-            });
-        }
-        private void clockTimerTracker() {
-
-            if(rcp_time <= 0) {
-                rcp_time = 5;
-                reciprocal_timer.cancel();
-                ad_container.removeView(ad_reciprocal);
-                ad_container.addView(ad_close);
-            }
-            else {
-                rcp_time--;
-            }
-            ad_reciprocal.setText(rcp_time + "秒");
-        }
-    }
-
-
-    private class AdvertisingTask extends TimerTask {
-        Context context;
-        public AdvertisingTask(Context context) {
-            this.context = context;
-        }
-
-        @Override
-        public void run () {
-            if(ad_times <= 2) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        ad_container.removeAllViews();
-                        main.removeView(ad_container);
-
-                        RelativeLayout.LayoutParams reciprocal_lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                        reciprocal_lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-                        reciprocal_lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                        ad_reciprocal.setLayoutParams(reciprocal_lp);
-                        ad_reciprocal.setText(rcp_time + "秒");
-                        ad_reciprocal.setTextSize(30);
-                        ad_reciprocal.setTextColor(Color.WHITE);
-
-
-                        ad_close.setText("關閉廣告");
-                        ad_close.setTextSize(30);
-                        ad_close.setBackgroundColor(Color.argb(200, 128, 128, 128));
-                        ad_close.setTextColor(Color.WHITE);
-
-                        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                        lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-                        lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-
-
-                        ad_close.setLayoutParams(lp);
-                        ad_close.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                main.removeView(ad_container);
-                                main.removeView(ad_close);
-                                showAd();
-                            }
-                        });
-
-                        ad_container.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                        ad_container.setBackgroundColor(Color.BLACK);
-
-                        ImageView ad_img_view = new ImageView(context);
-                        RelativeLayout.LayoutParams imglp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-                        ad_img_view.setLayoutParams(imglp);
-                        ad_img_view.setScaleType(ImageView.ScaleType.MATRIX);
-                        int ad_resId = getResources().getIdentifier(config.ad_id+ad_times, "drawable", getPackageName());
-                        ad_img_view.setImageResource(ad_resId);
-
-                        ad_container.addView(ad_img_view);
-                        ad_container.addView(ad_reciprocal);
-                        main.addView(ad_container);
-                        reciprocal_timer = new Timer();
-                        reciprocal_timer.schedule(new reciprocalTask(), 1 * SECOND_UNIT, 1 * SECOND_UNIT);
-                        ad_times++;
-                    }
-                });
-            }
-            else {
-                if (ad_timer != null) {
-                    ad_timer.cancel();
-                }
-            }
-        }
-
-    }
-
     public class CityOnClickListener implements View.OnClickListener {
         Context context;
         City city;
@@ -298,6 +166,7 @@ public class MainActivity extends Activity {
         public CityOnClickListener(City city, Context context) {
             this.city = city;
             this.context = context;
+
         }
 
         @Override
@@ -410,4 +279,152 @@ public class MainActivity extends Activity {
             }
         }
     }
+
+    private void initSideBar() {
+        LinearLayout left_side_bar = (LinearLayout) findViewById(R.id.left_side_bar);
+
+        cities = City.getAll();
+
+        for( int i = 0; i < cities.size(); i++ ) {
+            City city = cities.get(i);
+            LinearLayout city_row = new LinearLayout(this);
+            city_row.setLayoutParams(new LinearLayout.LayoutParams(config.getScreenWidth()/5, config.getScreenHigh()/8));
+            city_row.setOrientation(LinearLayout.HORIZONTAL);
+
+            Button city_btn = new Button(this);
+            city_btn.setId(city.c_id);
+            city_btn.setText(city.name);
+            city_btn.setTextColor(Config.textColor);
+            city_btn.setTextSize(TypedValue.COMPLEX_UNIT_PX, config.getScreenHigh() / 15);
+            city_btn.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+            city_btn.setOnClickListener(new CityOnClickListener(city, this));
+
+            city_row.addView(city_btn);
+            left_side_bar.addView(city_row);
+
+            if (i == 1){
+                taipei = city_btn;
+            }
+        }
+    }
+
+    private class clockTask extends TimerTask {
+        @Override
+        public void run () {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    clockTimerTracker();
+                }
+            });
+        }
+        private void clockTimerTracker() {
+            TextView clock_timer_view = (TextView) findViewById(R.id.timer);
+            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
+            Calendar calendar = Calendar.getInstance();
+            clock_timer_view.setText(dateFormat.format(calendar.getTime()));
+        }
+    }
+
+    private class reciprocalTask extends TimerTask {
+        @Override
+        public void run () {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    clockTimerTracker();
+                }
+            });
+        }
+        private void clockTimerTracker() {
+
+            if(rcp_time <= 0) {
+                rcp_time = 5;
+                reciprocal_timer.cancel();
+                ad_container.removeView(ad_reciprocal);
+                ad_container.addView(ad_close);
+            }
+            else {
+                rcp_time--;
+            }
+            ad_reciprocal.setText(rcp_time + "秒");
+        }
+    }
+
+
+    private class AdvertisingTask extends TimerTask {
+        Context context;
+        public AdvertisingTask(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        public void run () {
+            if(ad_times <= 2) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        ad_container.removeAllViews();
+                        main.removeView(ad_container);
+
+                        RelativeLayout.LayoutParams reciprocal_lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                        reciprocal_lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                        reciprocal_lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                        ad_reciprocal.setLayoutParams(reciprocal_lp);
+                        ad_reciprocal.setText(rcp_time + "秒");
+                        ad_reciprocal.setTextSize(30);
+                        ad_reciprocal.setTextColor(Color.WHITE);
+
+
+                        ad_close.setText("關閉廣告");
+                        ad_close.setTextSize(30);
+                        ad_close.setBackgroundColor(Color.argb(200, 128, 128, 128));
+                        ad_close.setTextColor(Color.WHITE);
+
+                        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                        lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                        lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+
+
+                        ad_close.setLayoutParams(lp);
+                        ad_close.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                main.removeView(ad_container);
+                                main.removeView(ad_close);
+                                showAd();
+                            }
+                        });
+
+                        ad_container.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+                        ad_container.setBackgroundColor(Color.BLACK);
+
+                        ImageView ad_img_view = new ImageView(context);
+                        RelativeLayout.LayoutParams imglp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+                        ad_img_view.setLayoutParams(imglp);
+                        ad_img_view.setScaleType(ImageView.ScaleType.MATRIX);
+                        Log.d("Current AD", config.ad_id);
+                        int ad_resId = getResources().getIdentifier(config.ad_id+ad_times, "drawable", getPackageName());
+                        ad_img_view.setImageResource(ad_resId);
+
+                        ad_container.addView(ad_img_view);
+                        ad_container.addView(ad_reciprocal);
+                        main.addView(ad_container);
+                        reciprocal_timer = new Timer();
+                        reciprocal_timer.schedule(new reciprocalTask(), 1 * SECOND_UNIT, 1 * SECOND_UNIT);
+                        ad_times++;
+                    }
+                });
+            }
+            else {
+                if (ad_timer != null) {
+                    ad_timer.cancel();
+                }
+            }
+        }
+
+    }
+
+
 }
